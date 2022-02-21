@@ -163,7 +163,11 @@ const Home: NextPage = () => {
     "didn't work"
   );
   const handleChange = (text: string) => {
-    const fixed = text.replace(/\;\s/g, "\n");
+    const quoteErrorRegExp = /^\"|"$/g
+    let fixed = text.replace(/\;\s/g, "\n").replace(quoteErrorRegExp, "");
+    if (fixed.startsWith("\"")) {
+      fixed = fixed
+    }
     setVal(fixed);
     setOutput(processRawRecipePaste(fixed));
   };
