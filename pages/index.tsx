@@ -83,7 +83,7 @@ function parseQuantityBasedLine(parts: string[]) {
     quantity = Number.parseInt(parts.splice(0, 1)[0]);
   }
   const name = parts.join(" ");
-  return { name, quantity };
+  return { name, quantity, checked: false };
 }
 
 function parseUnitBasedLine(parts: string[], numericPartsCount: number) {
@@ -98,7 +98,7 @@ function parseUnitBasedLine(parts: string[], numericPartsCount: number) {
       .map((part) => tryParseFraction(part));
     const unit = clone.splice(0, 1)[0];
     const name = clone.join(" ");
-    return { name, quantity: quantities, unit };
+    return { name, quantity: quantities, unit, checked: false };
   } else {
     if (parts.join(" ").match(regExpMatch)) {
       // Is an item like 1 8 oz container brown mushrooms sliced
@@ -107,7 +107,7 @@ function parseUnitBasedLine(parts: string[], numericPartsCount: number) {
       const quantity = tryParseFraction(numericParts.join(" "));
       const unit = clone.splice(0, 1)[0];
       const name = clone.join(" ");
-      return { name, quantity, unit };
+      return { name, quantity, unit, checked: false };
     }
   }
 }
@@ -125,6 +125,7 @@ function processRecipeLine(line: string) {
       name,
       quantity,
       unit,
+      checked: false,
     };
   } else {
     if (startsWithNumber(line)) {
@@ -133,12 +134,14 @@ function processRecipeLine(line: string) {
         name,
         unit: "item",
         quantity,
+        checked: false,
       };
     } else {
       return {
         name: line,
         unit: "non-quantity",
         quantity: -1,
+        checked: false,
       };
     }
   }
@@ -163,10 +166,10 @@ const Home: NextPage = () => {
     "didn't work"
   );
   const handleChange = (text: string) => {
-    const quoteErrorRegExp = /^\"|"$/g
+    const quoteErrorRegExp = /^\"|"$/g;
     let fixed = text.replace(/\;\s/g, "\n").replace(quoteErrorRegExp, "");
-    if (fixed.startsWith("\"")) {
-      fixed = fixed
+    if (fixed.startsWith('"')) {
+      fixed = fixed;
     }
     setVal(fixed);
     setOutput(processRawRecipePaste(fixed));
