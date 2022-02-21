@@ -32,18 +32,18 @@ const regExpMatch = new RegExp(regExpMatchStr);
 console.log(regExpMatch);
 function fixupSymbols(str: string) {
   return str
-    .replaceAll("¼", "1/4")
-    .replaceAll("½", "1/2")
-    .replaceAll("¾", "3/4")
-    .replaceAll("⅔", "2/3")
-    .replaceAll("⅓", "1/3")
-    .replaceAll("1½", "1 1/2")
-    .replaceAll("11/2", "1 1/2")
-    .replaceAll("11/3", "1 1/3")
-    .replaceAll("11/4", "1 1/4")
-    .replaceAll("tablespoons", "tbsp")
-    .replaceAll("teaspoons", "tsp")
-    .replaceAll("; ", "\n");
+    .replace(/¼/g, "1/4")
+    .replace(/½/g, "1/2")
+    .replace(/¾/g, "3/4")
+    .replace(/⅔/g, "2/3")
+    .replace(/⅓/g, "1/3")
+    .replace(/1½/g, "1 1/2")
+    .replace(/11\/2/g, "1 1/2")
+    .replace(/11\/3/g, "1 1/3")
+    .replace(/11\/4/g, "1 1/4")
+    .replace(/tablespoons/g, "tbsp")
+    .replace(/teaspoons/g, "tsp")
+    .replace(/; /g, "\n");
 }
 
 function tryParseFraction(val: string) {
@@ -163,7 +163,7 @@ const Home: NextPage = () => {
     "didn't work"
   );
   const handleChange = (text: string) => {
-    const fixed = text.replaceAll("; ", "\n");
+    const fixed = text.replace(/\;\s/g, "\n");
     setVal(fixed);
     setOutput(processRawRecipePaste(fixed));
   };
