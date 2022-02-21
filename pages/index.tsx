@@ -6,6 +6,8 @@ import styles from "../styles/Home.module.css";
 import Clipboard from "react-clipboard.js";
 import syntaxHighlight from "../utils/syntaxHighlight";
 
+const Fraction = require("fraction.js");
+
 const UNITS = [
   "tbs",
   "tbsp",
@@ -25,8 +27,9 @@ const UNITS = [
 ] as const;
 type Unit = typeof UNITS[number];
 
-const Fraction = require("fraction.js");
-
+const regExpMatchStr = "\\d*\\s\\d*(" + UNITS.join("|") + ")\\s";
+const regExpMatch = new RegExp(regExpMatchStr);
+console.log(regExpMatch);
 function fixupSymbols(str: string) {
   return str
     .replaceAll("¼", "1/4")
@@ -84,12 +87,29 @@ function parseQuantityBasedLine(parts: string[]) {
 }
 
 function parseUnitBasedLine(parts: string[], numericPartsCount: number) {
-  const quantity = tryParseFraction(
-    parts.splice(0, numericPartsCount).join(" ")
-  );
-  const unit = parts.splice(0, 1)[0];
-  const name = parts.join(" ");
-  return { name, quantity, unit };
+  const clone = [...parts];
+  let numericParts = clone.splice(0, numericPartsCount);
+  if (numericParts.join(" ").includes("-")) {
+    // RANGE
+    const quantities = numericParts
+      .join(" ")
+      .replace("-", " ")
+      .split(" ")
+      .map((part) => tryParseFraction(part));
+    const unit = clone.splice(0, 1)[0];
+    const name = clone.join(" ");
+    return { name, quantity: quantities, unit };
+  } else {
+    if (parts.join(" ").match(regExpMatch)) {
+      // Is an item like 1 8 oz container brown mushrooms sliced
+      return { ...parseQuantityBasedLine(parts), unit: "item" };
+    } else {
+      const quantity = tryParseFraction(numericParts.join(" "));
+      const unit = clone.splice(0, 1)[0];
+      const name = clone.join(" ");
+      return { name, quantity, unit };
+    }
+  }
 }
 
 function processRecipeLine(line: string) {
@@ -132,7 +152,16 @@ function processRawRecipePaste(text: string) {
 const Home: NextPage = () => {
   const [val, setVal] = useState("");
   const [output, setOutput] = useState("");
-
+  console.log(fixupSymbols("1 8 oz container brown mushrooms sliced"));
+  console.log(
+    processRecipeLine(fixupSymbols("1 8 oz container brown mushrooms sliced"))
+  );
+  console.log("1 8 oz container brown mushrooms sliced".match(regExpMatch));
+  console.assert(
+    processRecipeLine(fixupSymbols("1 8 oz container brown mushrooms sliced"))
+      .quantity == 1,
+    "didn't work"
+  );
   const handleChange = (text: string) => {
     const fixed = text.replaceAll("; ", "\n");
     setVal(fixed);
