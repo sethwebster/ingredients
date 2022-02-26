@@ -5,6 +5,7 @@ import { useState } from "react";
 import styles from "../styles/Home.module.css";
 import Clipboard from "react-clipboard.js";
 import syntaxHighlight from "../utils/syntaxHighlight";
+import { useTimedState } from "../hooks/useTimeout";
 
 const Fraction = require("fraction.js");
 
@@ -155,16 +156,8 @@ function processRawRecipePaste(text: string) {
 const Home: NextPage = () => {
   const [val, setVal] = useState("");
   const [output, setOutput] = useState("");
-  console.log(fixupSymbols("1 8 oz container brown mushrooms sliced"));
-  console.log(
-    processRecipeLine(fixupSymbols("1 8 oz container brown mushrooms sliced"))
-  );
-  console.log("1 8 oz container brown mushrooms sliced".match(regExpMatch));
-  console.assert(
-    processRecipeLine(fixupSymbols("1 8 oz container brown mushrooms sliced"))
-      .quantity == 1,
-    "didn't work"
-  );
+  const [copiedVisible, setCopiedVisible] = useTimedState(false, 1500);
+
   const handleChange = (text: string) => {
     const quoteErrorRegExp = /^\"|"$/g;
     let fixed = text.replace(/\;\s/g, "\n").replace(quoteErrorRegExp, "");
@@ -191,7 +184,13 @@ const Home: NextPage = () => {
           onChange={(e) => handleChange(e.currentTarget.value)}
         />
         <h1>Output</h1>
-        <Clipboard data-clipboard-text={output}>copy to clipboard</Clipboard>
+        <Clipboard
+          data-clipboard-text={output}
+          onSuccess={() => setCopiedVisible(true)}
+        >
+          {copiedVisible && "Copied"}
+          {!copiedVisible && "copy to clipboard"}
+        </Clipboard>
         <pre dangerouslySetInnerHTML={{ __html: syntaxHighlight(output) }} />
       </main>
     </div>
